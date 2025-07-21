@@ -1,0 +1,10 @@
+[tool.poetry]
+name = "pylnsocket"
+version = "0.1.0"
+description = "Python wrapper for static jb55/lnsocket C library"
+authors = ["21M4TW <21M4TW@proton.me>"]
+packages = [{ include = "pylnsocket" }]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
