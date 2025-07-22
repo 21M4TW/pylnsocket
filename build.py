@@ -3,13 +3,14 @@ import os
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import shutil
+from Cython.Build import cythonize
 
 class Build(build_ext):
     def run(self):
         # Clone lnsocket if not present
         if not os.path.exists("lnsocket"):
             subprocess.check_call([
-                "git", "clone", "https://github.com/21M4TW/lnsocket.git", "lnsocket"
+                "git", "clone", "--depth", "1", "https://github.com/21M4TW/lnsocket.git", "lnsocket"
             ])
 
 
@@ -33,17 +34,21 @@ def find_gnu_make():
                 continue
     raise RuntimeError("GNU Make not found. Please install it.")
 
-ext = Extension(
-    name="pylnsocket.wrapper",
-    sources=["src/wrapper.c"],
-    include_dirs=["lnsocket/"],
-    extra_objects=["lnsocket/lnsocket.a","lnsocket/libsodium.a","lnsocket/libsecp256k1.a"],
-)
+ext = cythonize([
+    Extension(
+        name="pylnsocket.wrapper",
+        sources=["pylnsocket/wrapper.pyx", "pylnsocket/LNSocket.cpp"],
+        language="c++",
+        include_dirs=["lnsocket", "pylnsocket"],
+        extra_objects=["lnsocket/lnsocket.a","lnsocket/libsodium.a","lnsocket/libsecp256k1.a"],
+        extra_compile_args=["-std=c++17", "-fPIC"]
+    )
+])
 
 setup(
     name="pylnsocket",
     version="0.1.0",
-    ext_modules=[ext],
+    ext_modules=ext,
     packages=["pylnsocket"],
     cmdclass={"build_ext": Build},
 )

@@ -1,1 +1,1 @@
-from .wrapper import create
+from .wrapper import PyLNSocket
