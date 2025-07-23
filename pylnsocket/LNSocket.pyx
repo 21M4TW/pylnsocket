@@ -10,9 +10,21 @@ cdef class LNSocket:
     def __dealloc__(self):
         del self._impl
 
-    def init(self, nodeid: str, host: str) -> init:
+    def Init(self, nodeid: str, host: str) -> Init:
         bnodeid = nodeid.encode('utf-8')
         cdef const char* cnodeid = bnodeid
         bhost = host.encode('utf-8')
         cdef const char* chost = bhost
-        return self._impl.init(cnodeid, chost)
+        return self._impl.Init(cnodeid, chost)
+
+    def Call(self, method: str, params: str, rune: str) -> Call:
+        bmethod = method.encode('utf-8')
+        cdef const char* cmethod = bmethod
+        bparams = params.encode('utf-8')
+        cdef const char* cparams = bparams
+        brune = rune.encode('utf-8')
+        cdef const char* crune = brune
+        cdef string ret
+        ok = self._impl.Call(cmethod, cparams, crune, &ret)
+        uret = ret.decode('UTF-8')
+        return ok, uret
