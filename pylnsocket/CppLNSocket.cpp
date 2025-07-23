@@ -3,9 +3,9 @@
 
 #include <sys/select.h>
 
-#include "LNSocket.h"
+#include "CppLNSocket.h"
 
-int LNSocket::init(const char* nodeid, const char* host)
+int CppLNSocket::init(const char* nodeid, const char* host)
 {
 	int verbose = getenv("VERBOSE") != 0;
 	int ok = 1;

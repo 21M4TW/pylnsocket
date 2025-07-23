@@ -2,7 +2,7 @@ extern "C" {
 #include "lnsocket.h"  // Header from the static lib
 };
 
-class LNSocket {
+class CppLNSocket {
 	public:
 		int init(const char* nodeid, const char* host);
 	private:

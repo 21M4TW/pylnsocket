@@ -1,11 +1,11 @@
-from pylnsocket cimport wrapper
+from pylnsocket cimport LNSocket
 from libcpp.string cimport string
 
-cdef class PyLNSocket:
-    cdef LNSocket* _impl
+cdef class LNSocket:
+    cdef CppLNSocket* _impl
 
     def __cinit__(self):
-        self._impl = new LNSocket()
+        self._impl = new CppLNSocket()
 
     def __dealloc__(self):
         del self._impl

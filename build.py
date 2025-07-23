@@ -36,8 +36,8 @@ def find_gnu_make():
 
 ext = cythonize([
     Extension(
-        name="pylnsocket.wrapper",
-        sources=["pylnsocket/wrapper.pyx", "pylnsocket/LNSocket.cpp"],
+        name="pylnsocket.LNSocket",
+        sources=["pylnsocket/LNSocket.pyx", "pylnsocket/CppLNSocket.cpp"],
         language="c++",
         include_dirs=["lnsocket", "pylnsocket"],
         extra_objects=["lnsocket/lnsocket.a","lnsocket/libsodium.a","lnsocket/libsecp256k1.a"],
