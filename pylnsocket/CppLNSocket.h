@@ -6,8 +6,11 @@ extern "C" {
 
 class CppLNSocket {
 	public:
-		int Init(const char* nodeid, const char* host);
-		int Call(const char* method, const char* params, const char* rune, std::string* ret);
+		CppLNSocket(): ln(NULL){}
+		virtual ~CppLNSocket(){DeInit();}
+		void Init(const char* nodeid, const char* host);
+		void DeInit();
+		void Call(const char* method, const char* params, const char* rune, std::string* ret);
 	private:
 		struct lnsocket *ln;
 		int socket;

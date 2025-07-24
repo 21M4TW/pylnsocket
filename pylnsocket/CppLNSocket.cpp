@@ -1,5 +1,7 @@
-#include <stdio.h>
+#include <cstdio>
 #include <assert.h>
+
+#include <stdexcept>
 
 #include <sys/select.h>
 
@@ -11,10 +13,11 @@ extern "C" {
 #include "lnsocket.h"
 };
 
-int CppLNSocket::Init(const char* nodeid, const char* host)
+using namespace std;
+
+void CppLNSocket::Init(const char* nodeid, const char* host)
 {
 	verbose = getenv("VERBOSE") != 0;
-	int ok = 1;
 	FD_ZERO(&set); /* clear the set */
 	ln = lnsocket_create();
 	assert(ln);
@@ -26,41 +29,54 @@ int CppLNSocket::Init(const char* nodeid, const char* host)
 	timeout.tv_sec = timeout_ms / 1000;
 	timeout.tv_usec = (timeout_ms % 1000) * 1000;
 
-	if (!(ok = lnsocket_connect(ln, nodeid, host)))
-		goto done_init;
+	if (!lnsocket_connect(ln, nodeid, host)) {
+		lnsocket_print_errors(ln);
+		throw runtime_error("lnsocket_connect failed");
+	}
 
-	if (!(ok = lnsocket_fd(ln, &socket)))
-		goto done_init;
+	if (!lnsocket_fd(ln, &socket)) {
+		lnsocket_print_errors(ln);
+		throw runtime_error("lnsocket_fd failed");
+	}
 
 	FD_SET(socket, &set); /* add our file descriptor to the set */
 
-	if (!(ok = lnsocket_perform_init(ln)))
-		goto done_init;
+	if (!lnsocket_perform_init(ln)) {
+		lnsocket_print_errors(ln);
+		throw runtime_error("lnsocket_perform_init failed");
+	}
 
 	if (verbose)
 		fprintf(stderr, "init success\n");
-
-done_init:
-	lnsocket_print_errors(ln);
-	lnsocket_destroy(ln);
-	return !ok;
 }
 
-int CppLNSocket::Call(const char* method, const char* params, const char* rune, std::string* ret)
+void CppLNSocket::DeInit()
+{
+	if(ln) {
+		lnsocket_destroy(ln);
+		ln = NULL;
+	}
+}
+
+void CppLNSocket::Call(const char* method, const char* params, const char* rune, std::string* ret)
 {
 	static u8 msgbuf[4096];
 	u8 *buf;
-	int ok, rv;
+	int rv;
 	u16 len, msgtype;
 	const unsigned int req_id = 1;
 
 	ret->clear();
 
-	if (!(ok = len = commando_make_rpc_msg(method, params, rune, req_id, msgbuf, sizeof(msgbuf))))
-		goto done_call;
+	if (!(len = commando_make_rpc_msg(method, params, rune, req_id, msgbuf, sizeof(msgbuf)))) {
+		lnsocket_print_errors(ln);
+		throw runtime_error("commando_make_rpc_msg failed");;
+	}
 
-	if (!(ok = lnsocket_write(ln, msgbuf, len)))
-		goto done_call;
+	if (!lnsocket_write(ln, msgbuf, len)) {
+		lnsocket_print_errors(ln);
+		throw runtime_error("lnsocket_write failed");;
+	}
 
 	if (verbose)
 		fprintf(stderr, "waiting for response...\n");
@@ -70,22 +86,22 @@ int CppLNSocket::Call(const char* method, const char* params, const char* rune, 
 
 		if (rv == -1) {
 			perror("select");
-			ok = 0;
-			goto done_call;
+			throw runtime_error("select failed");;
 		} else if (rv == 0) {
 			fprintf(stderr, "error: rpc request timeout\n");
-			ok = 0;
-			goto done_call;
+			throw runtime_error("select timeout");;
 		}
 
-		if (!(ok = lnsocket_recv(ln, &msgtype, &buf, &len)))
-			goto done_call;
+		if (!lnsocket_recv(ln, &msgtype, &buf, &len)) {
+			lnsocket_print_errors(ln);
+			throw runtime_error("lnsocket_recv failed");;
+		}
 
 		switch (msgtype) {
 			case COMMANDO_REPLY_TERM:
 				//printf("%.*s\n", len - 8, buf + 8);
 				ret->append((const char*)buf + 8, len - 8);
-				goto done_call;
+				return;
 			case COMMANDO_REPLY_CONTINUES:
 				//printf("%.*s", len - 8, buf + 8);
 				ret->append((const char*)buf + 8, len - 8);
@@ -99,9 +115,4 @@ int CppLNSocket::Call(const char* method, const char* params, const char* rune, 
 				continue;
 		}
 	}
-
-done_call:
-	lnsocket_print_errors(ln);
-	lnsocket_destroy(ln);
-	return !ok;
 }
