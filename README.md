@@ -1,6 +1,6 @@
 # pylnsocket
 
-A python wrapper around jb55/lnsocket.
+A python extension for [jb55/lnsocket](https://github.com/jb55/lnsocket).
 
 ## Building
 $ poetry install
