@@ -1,4 +1,6 @@
 #include <cstdio>
+#include <cstring>
+#include <strings.h>
 #include <assert.h>
 
 #include <stdexcept>
@@ -15,9 +17,13 @@ extern "C" {
 
 using namespace std;
 
-void CppLNSocket::Init(const char* nodeid, const char* host)
+void CppLNSocket::Init(const char* nodeid, const char* host, const char* rune)
 {
 	verbose = getenv("VERBOSE") != 0;
+	runeLength = (strlen(rune)+1)*sizeof(char);
+	this->rune = (char*)malloc(runeLength);
+	strcpy(this->rune, rune);
+
 	FD_ZERO(&set); /* clear the set */
 	ln = lnsocket_create();
 	assert(ln);
@@ -53,12 +59,14 @@ void CppLNSocket::Init(const char* nodeid, const char* host)
 void CppLNSocket::DeInit()
 {
 	if(ln) {
+		explicit_bzero(rune, runeLength);
+		free(rune);
 		lnsocket_destroy(ln);
 		ln = NULL;
 	}
 }
 
-void CppLNSocket::Call(const char* method, const char* params, const char* rune, std::string* ret)
+void CppLNSocket::Call(std::string* ret, const char* method, const char* params)
 {
 	static u8 msgbuf[4096];
 	u8 *buf;
