@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <cstring>
 #include <strings.h>
-#include <assert.h>
 
 #include <stdexcept>
 
@@ -20,13 +19,14 @@ using namespace std;
 void CppLNSocket::Init(const char* nodeid, const char* host, const char* rune)
 {
 	verbose = getenv("VERBOSE") != 0;
-	runeLength = (strlen(rune)+1)*sizeof(char);
+	ln = lnsocket_create();
+	
+	if(!ln) throw runtime_error("lnsocket_create failed");
+        runeLength = (strlen(rune)+1)*sizeof(char);
 	this->rune = (char*)malloc(runeLength);
 	strcpy(this->rune, rune);
 
 	FD_ZERO(&set); /* clear the set */
-	ln = lnsocket_create();
-	assert(ln);
 	lnsocket_genkey(ln);
 
 	const char* timeout_str = getenv("LNRPC_TIMEOUT");

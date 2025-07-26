@@ -21,7 +21,6 @@ cdef class LNSocket:
         def _receiver():
             while True:
                 obj = (yield)
-                print(obj)
                 results[obj[0]] = obj[1]
         return results, ijson.coroutine(_receiver)()
 
