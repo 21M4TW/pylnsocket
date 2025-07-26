@@ -66,7 +66,7 @@ void CppLNSocket::DeInit()
 	}
 }
 
-void CppLNSocket::Call(std::string* ret, const char* method, const char* params)
+bool CppLNSocket::Call(char** const ret, uint16_t* retlen, const char* method, const char* params)
 {
 	static u8 msgbuf[4096];
 	u8 *buf;
@@ -74,16 +74,19 @@ void CppLNSocket::Call(std::string* ret, const char* method, const char* params)
 	u16 len, msgtype;
 	const unsigned int req_id = 1;
 
-	ret->clear();
+	*retlen = 0;
 
-	if (!(len = commando_make_rpc_msg(method, params, rune, req_id, msgbuf, sizeof(msgbuf)))) {
-		lnsocket_print_errors(ln);
-		throw runtime_error("commando_make_rpc_msg failed");;
-	}
+	if(method) {
 
-	if (!lnsocket_write(ln, msgbuf, len)) {
-		lnsocket_print_errors(ln);
-		throw runtime_error("lnsocket_write failed");;
+		if (!(len = commando_make_rpc_msg(method, params, rune, req_id, msgbuf, sizeof(msgbuf)))) {
+			lnsocket_print_errors(ln);
+			throw runtime_error("commando_make_rpc_msg failed");;
+		}
+
+		if (!lnsocket_write(ln, msgbuf, len)) {
+			lnsocket_print_errors(ln);
+			throw runtime_error("lnsocket_write failed");;
+		}
 	}
 
 	if (verbose)
@@ -108,16 +111,19 @@ void CppLNSocket::Call(std::string* ret, const char* method, const char* params)
 		switch (msgtype) {
 			case COMMANDO_REPLY_TERM:
 				//printf("%.*s\n", len - 8, buf + 8);
-				ret->append((const char*)buf + 8, len - 8);
-				return;
+				*ret = (char*)buf + 8;
+				*retlen = len - 8;
+				return false;
 			case COMMANDO_REPLY_CONTINUES:
 				//printf("%.*s", len - 8, buf + 8);
-				ret->append((const char*)buf + 8, len - 8);
-				continue;
+				*ret = (char*)buf + 8;
+				*retlen = len - 8;
+				return true;
 			case WIRE_PING:
 				if (!lnsocket_pong(ln, buf, len)) {
 					fprintf(stderr, "pong error...\n");
 				}
+				return false;
 			default:
 				// ignore extra interleaved messages which can happen
 				continue;

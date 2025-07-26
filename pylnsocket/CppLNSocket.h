@@ -10,7 +10,7 @@ class CppLNSocket {
 		virtual ~CppLNSocket(){DeInit();}
 		void Init(const char* nodeid, const char* host, const char* rune);
 		void DeInit();
-		void Call(std::string* ret, const char* method, const char* params=NULL);
+		bool Call(char** const ret, uint16_t* retlen, const char* method=NULL, const char* params=NULL);
 	private:
 		struct lnsocket *ln;
 		char* rune;

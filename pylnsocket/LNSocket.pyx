@@ -1,5 +1,10 @@
 from pylnsocket cimport LNSocket
-from libcpp.string cimport string
+from libc.string cimport memcpy
+from cpython.ref cimport PyObject
+from cpython.memoryview cimport PyMemoryView_FromMemory
+from cpython.buffer cimport PyBUF_READ
+import ijson
+
 
 cdef class LNSocket:
     cdef CppLNSocket* _impl
@@ -10,10 +15,20 @@ cdef class LNSocket:
     def __dealloc__(self):
         del self._impl
 
+    @staticmethod
+    def _collector():
+        results = {}
+        def _receiver():
+            while True:
+                obj = (yield)
+                print(obj)
+                results[obj[0]] = obj[1]
+        return results, ijson.coroutine(_receiver)()
+
     def Init(self, nodeid: str, host: str, brune: bytearray) -> Init:
-        bnodeid = nodeid.encode('UTF-8')
+        bnodeid = nodeid.encode('ASCII')
         cdef const char* cnodeid = bnodeid
-        bhost = host.encode('UTF-8')
+        bhost = host.encode('ASCII')
         cdef const char* chost = bhost
         cdef const char* crune = brune
         self._impl.Init(cnodeid, chost, crune)
@@ -21,16 +36,26 @@ cdef class LNSocket:
         del brune
 
     def Call(self, method: str, params: str = None) -> Call:
-        bmethod = method.encode('UTF-8')
+        bmethod = method.encode('ASCII')
         cdef const char* cmethod = bmethod
-        cdef string ret
+        cdef char* ret
+        cdef uint16_t retlen
         cdef const char* cparams
+        cdef bool loop
+
+        results, receiver_coro = self._collector()
+        coro = ijson.kvitems_coro(receiver_coro, '')
 
         if params:
-            bparams = params.encode('UTF-8')
+            bparams = params.encode('ASCII')
             cparams = bparams
-            self._impl.Call(&ret, cmethod, cparams)
+            loop = self._impl.Call(&ret, &retlen, cmethod, cparams)
         else:
-            self._impl.Call(&ret, cmethod)
-        uret = ret.decode('UTF-8')
-        return uret
+            loop = self._impl.Call(&ret, &retlen, cmethod)
+        coro.send(PyMemoryView_FromMemory(ret, retlen, PyBUF_READ))
+
+        while loop:
+            loop = self._impl.Call(&ret, &retlen)
+            coro.send(PyMemoryView_FromMemory(ret, retlen, PyBUF_READ))
+        coro.close()
+        return results

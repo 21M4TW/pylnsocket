@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "pylnsocket"
 version = "0.1.0"
-description = "Python wrapper for static jb55/lnsocket C library"
+description = "A Python extension for the jb55/lnsocket C library"
 authors = ["21M4TW <21M4TW@proton.me>"]
 packages = [{ include = "pylnsocket" }]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.9"
+ijson = "^3.4.0"
 
 [tool.poetry.group.dev.dependencies]
 cython = "^3.1.2"

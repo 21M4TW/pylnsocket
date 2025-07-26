@@ -1,8 +1,12 @@
-from libcpp.string cimport string
+cdef extern from "stdint.h":
+        ctypedef unsigned short uint16_t
+cdef extern from "stdbool.h":
+        ctypedef bint bool
 
 cdef extern from "CppLNSocket.h":
     cdef cppclass CppLNSocket:
         CppLNSocket()
         void Init(const char* nodeid, const char* host, const char* rune) except +
-        void Call(string* ret, const char* method, const char* params) except +
-        void Call(string* ret, const char* method) except +
+        bool Call(char** ret, uint16_t* retlen, const char* method, const char* params) except +
+        bool Call(char** ret, uint16_t* retlen, const char* method) except +
+        bool Call(char** ret, uint16_t* retlen) except +
