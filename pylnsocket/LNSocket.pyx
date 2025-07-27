@@ -31,7 +31,7 @@ cdef class LNSocket:
         cdef const char* chost = bhost
         self._impl.Init(cnodeid, chost)
 
-    def Call(self, rune: bytes, method: str, params: str = None) -> Call:
+    def Call(self, rune: bytes, method: str, params = None) -> Call:
         bmethod = method.encode('ASCII')
         cdef const char* crune = rune
         cdef const char* cmethod = bmethod
@@ -44,7 +44,7 @@ cdef class LNSocket:
         coro = ijson.kvitems_coro(receiver_coro, '')
 
         if params:
-            bparams = params.encode('ASCII')
+            bparams = str(params).encode('ASCII')
             cparams = bparams
             loop = self._impl.Call(&ret, &retlen, crune, cmethod, cparams)
         else:
