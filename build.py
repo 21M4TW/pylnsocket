@@ -50,5 +50,6 @@ setup(
     version="0.1.0",
     ext_modules=ext,
     packages=["pylnsocket"],
+    package_dir={"pylnsocket": "pylnsocket"},
     cmdclass={"build_ext": Build},
 )
