@@ -16,15 +16,12 @@ extern "C" {
 
 using namespace std;
 
-void CppLNSocket::Init(const char* nodeid, const char* host, const char* rune)
+void CppLNSocket::Init(const char* nodeid, const char* host)
 {
 	verbose = getenv("VERBOSE") != 0;
 	ln = lnsocket_create();
 	
 	if(!ln) throw runtime_error("lnsocket_create failed");
-        runeLength = (strlen(rune)+1)*sizeof(char);
-	this->rune = (char*)malloc(runeLength);
-	strcpy(this->rune, rune);
 
 	FD_ZERO(&set); /* clear the set */
 	lnsocket_genkey(ln);
@@ -59,14 +56,12 @@ void CppLNSocket::Init(const char* nodeid, const char* host, const char* rune)
 void CppLNSocket::DeInit()
 {
 	if(ln) {
-		explicit_bzero(rune, runeLength);
-		free(rune);
 		lnsocket_destroy(ln);
 		ln = NULL;
 	}
 }
 
-bool CppLNSocket::Call(char** const ret, uint16_t* retlen, const char* method, const char* params)
+bool CppLNSocket::Call(char** const ret, uint16_t* retlen, const char* rune, const char* method, const char* params)
 {
 	static u8 msgbuf[4096];
 	u8 *buf;
@@ -77,6 +72,8 @@ bool CppLNSocket::Call(char** const ret, uint16_t* retlen, const char* method, c
 	*retlen = 0;
 
 	if(method) {
+
+		if(!rune) rune = "";
 
 		if (!(len = commando_make_rpc_msg(method, params, rune, req_id, msgbuf, sizeof(msgbuf)))) {
 			lnsocket_print_errors(ln);

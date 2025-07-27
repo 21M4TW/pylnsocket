@@ -8,13 +8,11 @@ class CppLNSocket {
 	public:
 		CppLNSocket(): ln(NULL){}
 		virtual ~CppLNSocket(){DeInit();}
-		void Init(const char* nodeid, const char* host, const char* rune);
+		void Init(const char* nodeid, const char* host);
 		void DeInit();
-		bool Call(char** const ret, uint16_t* retlen, const char* method=NULL, const char* params=NULL);
+		bool Call(char** const ret, uint16_t* retlen, const char* rune=NULL, const char* method=NULL, const char* params=NULL);
 	private:
 		struct lnsocket *ln;
-		char* rune;
-		size_t runeLength;
 		int socket;
 		fd_set set;
 	        struct timeval timeout;

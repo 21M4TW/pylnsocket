@@ -6,7 +6,7 @@ cdef extern from "stdbool.h":
 cdef extern from "CppLNSocket.h":
     cdef cppclass CppLNSocket:
         CppLNSocket()
-        void Init(const char* nodeid, const char* host, const char* rune) except +
-        bool Call(char** ret, uint16_t* retlen, const char* method, const char* params) except +
-        bool Call(char** ret, uint16_t* retlen, const char* method) except +
+        void Init(const char* nodeid, const char* host) except +
+        bool Call(char** ret, uint16_t* retlen, const char* rune, const char* method, const char* params) except +
+        bool Call(char** ret, uint16_t* retlen, const char* rune, const char* method) except +
         bool Call(char** ret, uint16_t* retlen) except +

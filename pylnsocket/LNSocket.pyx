@@ -24,18 +24,16 @@ cdef class LNSocket:
                 results[obj[0]] = obj[1]
         return results, ijson.coroutine(_receiver)()
 
-    def Init(self, nodeid: str, host: str, brune: bytearray) -> Init:
+    def Init(self, nodeid: str, host: str) -> Init:
         bnodeid = nodeid.encode('ASCII')
         cdef const char* cnodeid = bnodeid
         bhost = host.encode('ASCII')
         cdef const char* chost = bhost
-        cdef const char* crune = brune
-        self._impl.Init(cnodeid, chost, crune)
-        brune[:] = map(lambda x: 0, brune)
-        del brune
+        self._impl.Init(cnodeid, chost)
 
-    def Call(self, method: str, params: str = None) -> Call:
+    def Call(self, rune: bytes, method: str, params: str = None) -> Call:
         bmethod = method.encode('ASCII')
+        cdef const char* crune = rune
         cdef const char* cmethod = bmethod
         cdef char* ret
         cdef uint16_t retlen
@@ -48,9 +46,9 @@ cdef class LNSocket:
         if params:
             bparams = params.encode('ASCII')
             cparams = bparams
-            loop = self._impl.Call(&ret, &retlen, cmethod, cparams)
+            loop = self._impl.Call(&ret, &retlen, crune, cmethod, cparams)
         else:
-            loop = self._impl.Call(&ret, &retlen, cmethod)
+            loop = self._impl.Call(&ret, &retlen, crune, cmethod)
         coro.send(PyMemoryView_FromMemory(ret, retlen, PyBUF_READ))
 
         while loop:
