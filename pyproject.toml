@@ -1,6 +1,13 @@
+
+[tool.poetry]
+name = "pylnsocket"
+version = "0.1.1"
+description = "A Python extension for the jb55/lnsocket C library"
+authors = ["21M4TW <21M4TW@proton.me>"]
+
 [project]
 name = "pylnsocket"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python extension for the jb55/lnsocket C library"
 authors = [{ name = "21M4TW", email="21M4TW@proton.me"}]
 

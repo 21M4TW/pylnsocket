@@ -1,1 +1,1 @@
-from .LNSocket import LNSocket
+from .LNSocket import LNSocket, RpcError
