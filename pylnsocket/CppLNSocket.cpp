@@ -16,7 +16,7 @@ extern "C" {
 
 using namespace std;
 
-void CppLNSocket::Init(const char* nodeid, const char* host)
+CppLNSocket::CppLNSocket(const char* nodeid, const char* host)
 {
 	verbose = getenv("VERBOSE") != 0;
 	ln = lnsocket_create();
@@ -53,12 +53,10 @@ void CppLNSocket::Init(const char* nodeid, const char* host)
 		fprintf(stderr, "init success\n");
 }
 
-void CppLNSocket::DeInit()
+CppLNSocket::~CppLNSocket()
 {
-	if(ln) {
-		lnsocket_destroy(ln);
-		ln = NULL;
-	}
+	lnsocket_destroy(ln);
+	ln = NULL;
 }
 
 bool CppLNSocket::Call(char** const ret, uint16_t* retlen, const char* rune, const char* method, const char* params)

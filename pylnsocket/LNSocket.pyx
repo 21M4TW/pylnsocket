@@ -34,8 +34,12 @@ class RpcError(ValueError):
 cdef class LNSocket:
     cdef CppLNSocket* _impl
 
-    def __cinit__(self):
-        self._impl = new CppLNSocket()
+    def __cinit__(self, nodeid: str, host: str):
+        bnodeid = nodeid.encode('ASCII')
+        cdef const char* cnodeid = bnodeid
+        bhost = host.encode('ASCII')
+        cdef const char* chost = bhost
+        self._impl = new CppLNSocket(cnodeid, chost)
 
     def __dealloc__(self):
         del self._impl
@@ -48,13 +52,6 @@ cdef class LNSocket:
                 obj = (yield)
                 results[obj[0]] = obj[1]
         return results, ijson.coroutine(_receiver)()
-
-    def Init(self, nodeid: str, host: str) -> Init:
-        bnodeid = nodeid.encode('ASCII')
-        cdef const char* cnodeid = bnodeid
-        bhost = host.encode('ASCII')
-        cdef const char* chost = bhost
-        self._impl.Init(cnodeid, chost)
 
     def Call(self, rune: bytes, method: str, params = None) -> Call:
         bmethod = method.encode('ASCII')

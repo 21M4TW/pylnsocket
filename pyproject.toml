@@ -1,26 +1,30 @@
+[project]
+name = "pylnsocket"
+version = "0.1.1"
 
 [tool.poetry]
 name = "pylnsocket"
 version = "0.1.1"
 description = "A Python extension for the jb55/lnsocket C library"
 authors = ["21M4TW <21M4TW@proton.me>"]
-
-[project]
-name = "pylnsocket"
-version = "0.1.1"
-description = "A Python extension for the jb55/lnsocket C library"
-authors = [{ name = "21M4TW", email="21M4TW@proton.me"}]
+packages = [
+  { include = "pylnsocket" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9"
 ijson = "^3.4.0"
-
-[tool.poetry.group.dev.dependencies]
 cython = "^3.1.2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "cython"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools", "wheel", "cython"]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["pylnsocket"]
+[tool.setuptools]
+packages = ["pylnsocket"]  # Only include desired packages
+
+[tool.setuptools.package-dir]
+pylnsocket = "pylnsocket"
+
+[tool.setuptools.exclude-package-data]
+"pylnsocket" = ["lnsocket/*"]
